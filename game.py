@@ -13,7 +13,7 @@ class Game(object):
 
 
     def set_up(self):
-        player = Player(1, 1)
+        player = Player(24, 19)
         self.player = player
         self.objects.append(player)
         print("Do set up")
@@ -73,6 +73,9 @@ class Game(object):
 
 
 map_tile_image = {
-    "G" : pygame.transform.scale(pygame.image.load("sprites/grass1.png"), (config.SCALE, config.SCALE)),
-    "W" : pygame.transform.scale(pygame.image.load("sprites/water.png"), (config.SCALE, config.SCALE))
+    "G" : pygame.transform.scale(pygame.image.load("sprites/grass.png"), (config.SCALE, config.SCALE)),
+    "W" : pygame.transform.scale(pygame.image.load("sprites/water.png"), (config.SCALE, config.SCALE)),
+    "M" : pygame.transform.scale(pygame.image.load("sprites/mountain.png"), (config.SCALE, config.SCALE)),
+    "L" : pygame.transform.scale(pygame.image.load("sprites/lava.png"), (config.SCALE, config.SCALE)),
+    "C" : pygame.transform.scale(pygame.image.load("sprites/cave.png"), (config.SCALE, config.SCALE))
 }
