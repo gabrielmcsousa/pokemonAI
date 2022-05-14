@@ -3,10 +3,14 @@ import config
 from game_state import PlayerOri
 
 class Player(object):
+    
     def __init__(self, x_position, y_position):
         print("Player Created")
         self.position = [x_position, y_position]
         self.orientation = PlayerOri.UP
+        self.image = pygame.image.load("sprites/player.png")
+        self.image = pygame.transform.scale(self.image, (config.SCALE, config.SCALE))
+        self.rect = pygame.Rect(self.position[0] * config.SCALE, self.position[1] * config.SCALE, config.SCALE, config.SCALE)
 
     def update(self):
         print("Player updated")
@@ -15,15 +19,16 @@ class Player(object):
         if self.orientation == PlayerOri.UP:
             self.position[0] += 0
             self.position[1] += -1
-        if self.orientation == PlayerOri.DOWN:
+        elif self.orientation == PlayerOri.DOWN:
             self.position[0] += 0
             self.position[1] += 1
-        if self.orientation == PlayerOri.LEFT:
+        elif self.orientation == PlayerOri.LEFT:
             self.position[0] += -1
             self.position[1] += 0
-        if self.orientation == PlayerOri.RIGHT:
+        elif self.orientation == PlayerOri.RIGHT:
             self.position[0] += 1
             self.position[1] += 0
+        self.rect = pygame.Rect(self.position[0] * config.SCALE, self.position[1] * config.SCALE, config.SCALE, config.SCALE)
 
 
     def change_orientation(self, side):
@@ -34,4 +39,4 @@ class Player(object):
 
 
     def render(self, screen):
-        pygame.draw.rect(screen, config.WHITE, (self.position[0] * config.SCALE, self.position[1] * config.SCALE, config.SCALE, config.SCALE), 2)
+        screen.blit(self.image, self.rect)
