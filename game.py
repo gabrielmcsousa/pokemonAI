@@ -1,8 +1,7 @@
 import pygame
 import config
-from player import Player
+from player import Player, PlayerOri
 from game_state import GameState
-from game_state import PlayerOri
 
 class Game(object):
     def __init__(self, screen):
@@ -32,8 +31,8 @@ class Game(object):
             object.render(self.screen)
 
     def handle_events(self):
-        # HANDLE QUIT EVENT
         for event in pygame.event.get():
+            # HANDLE QUIT EVENT
             if event.type == pygame.QUIT:
                 self.game_state = GameState.ENDED
             # HANDLE KEY EVENT

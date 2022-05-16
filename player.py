@@ -1,6 +1,5 @@
 import pygame
 import config
-from game_state import PlayerOri
 
 class Player(object):
     
@@ -31,12 +30,30 @@ class Player(object):
         self.rect = pygame.Rect(self.position[0] * config.SCALE, self.position[1] * config.SCALE, config.SCALE, config.SCALE)
 
 
-    def change_orientation(self, side):
-        if side == PlayerOri.TURN_LEFT:
-            self.orientation -= 90
-        elif side == PlayerOri.TURN_RIGHT:
-            self.orientation += 90
+    def change_orientation(self, turn_rate):
+        self.orientation += turn_rate
+        self.normalizeOri()
 
 
     def render(self, screen):
         screen.blit(self.image, self.rect)
+    
+    def normalizeOri(self):
+        if(self.orientation == 360):
+            self.orientation = PlayerOri.UP
+        elif(self.orientation == -90):
+            self.orientation = PlayerOri.LEFT
+        elif(self.orientation == -180):
+            self.orientation = PlayerOri.DOWN
+        elif(self.orientation == -270):
+            self.orientation = PlayerOri.RIGHT
+
+
+class PlayerOri():
+    #TODO: FIX ORIENTATION ISSUE. ONLY TURNING CLOCKWISE AND NOT DOING FULL 360
+    UP = 0
+    RIGHT = 90
+    DOWN = 180
+    LEFT = 270
+    TURN_LEFT = -90 #4
+    TURN_RIGHT = 90 #5
