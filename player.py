@@ -10,23 +10,46 @@ class Player(object):
         self.image = pygame.image.load("sprites/player.png")
         self.image = pygame.transform.scale(self.image, (config.SCALE, config.SCALE))
         self.rect = pygame.Rect(self.position[0] * config.SCALE, self.position[1] * config.SCALE, config.SCALE, config.SCALE)
+        self.can_pass_water = False
+        self.can_pass_cave = False
+        self.can_pass_mountain = False
+        self.can_pass_lava = False
 
     def update(self):
         print("Player updated")
 
-    def walk_forward(self):
+    def walk_forward(self, map):
+        new_position = self.position.copy()
+
         if self.orientation == PlayerOri.UP:
-            self.position[0] += 0
-            self.position[1] += -1
+            new_position[0] += 0
+            new_position[1] += -1
         elif self.orientation == PlayerOri.DOWN:
-            self.position[0] += 0
-            self.position[1] += 1
+            new_position[0] += 0
+            new_position[1] += 1
         elif self.orientation == PlayerOri.LEFT:
-            self.position[0] += -1
-            self.position[1] += 0
+            new_position[0] += -1
+            new_position[1] += 0
         elif self.orientation == PlayerOri.RIGHT:
-            self.position[0] += 1
-            self.position[1] += 0
+            new_position[0] += 1
+            new_position[1] += 0
+
+        if new_position[0] < 0 or new_position[0] > (len(map[0]) - 1):
+            return
+        if new_position[1] < 0 or new_position[1] > (len(map) - 1):
+            return
+
+        if map[new_position[1]][new_position[0]] == "W" and self.can_pass_water == False:
+            return
+        if map[new_position[1]][new_position[0]] == "C" and self.can_pass_cave == False:
+            return
+        if map[new_position[1]][new_position[0]] == "M" and self.can_pass_mountain == False:
+            return
+        if map[new_position[1]][new_position[0]] == "L" and self.can_pass_lava == False:
+            return
+
+        print("moveu")
+        self.position = new_position.copy()
         self.rect = pygame.Rect(self.position[0] * config.SCALE, self.position[1] * config.SCALE, config.SCALE, config.SCALE)
 
 
@@ -50,7 +73,6 @@ class Player(object):
 
 
 class PlayerOri():
-    #TODO: FIX ORIENTATION ISSUE. ONLY TURNING CLOCKWISE AND NOT DOING FULL 360
     UP = 0
     RIGHT = 90
     DOWN = 180

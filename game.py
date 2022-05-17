@@ -22,7 +22,7 @@ class Game(object):
 
     def update(self):
         self.screen.fill(config.BLACK)
-        print("update")
+        print(self.player.position)
         self.handle_events()
 
         self.render_map(self.screen)
@@ -40,7 +40,7 @@ class Game(object):
                 if event.key == pygame.K_ESCAPE:
                     self.game_state = GameState.ENDED
                 elif event.key == pygame.K_w: # WALK FORWARD
-                    self.player.walk_forward()
+                    self.player.walk_forward(self.map)
                 elif event.key == pygame.K_d: # TURN RIGHT
                     self.player.change_orientation(PlayerOri.TURN_RIGHT)
                 elif event.key == pygame.K_a: # TURN LEFT
