@@ -48,7 +48,6 @@ class Player(object):
         if map[new_position[1]][new_position[0]] == "L" and self.can_pass_lava == False:
             return
 
-        print("moveu")
         self.position = new_position.copy()
         self.rect = pygame.Rect(self.position[0] * config.SCALE, self.position[1] * config.SCALE, config.SCALE, config.SCALE)
 
