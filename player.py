@@ -14,6 +14,7 @@ class Player(object):
         self.can_pass_cave = False
         self.can_pass_mountain = False
         self.can_pass_lava = False
+        self.pokeballs = 25
 
     def update(self):
         print("Player updated")
@@ -69,6 +70,9 @@ class Player(object):
             self.orientation = PlayerOri.DOWN
         elif(self.orientation == -270):
             self.orientation = PlayerOri.RIGHT
+
+    def interact(self, map):
+        pass
 
 
 class PlayerOri():

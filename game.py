@@ -1,5 +1,9 @@
+from urllib.request import urlopen
 import pygame
 import config
+import requests
+import io
+from mon import Pokemon
 from player import Player, PlayerOri
 from game_state import GameState
 
@@ -9,12 +13,15 @@ class Game(object):
         self.objects = []
         self.game_state = GameState.NONE
         self.map = []
+        #self.request_pokemons()
+        self.pokemons = self.request_pokemons()
+        
+        
 
 
     def set_up(self):
-        player = Player(24, 19)
-        self.player = player
-        self.objects.append(player)
+        self.player = Player(24, 19)
+        self.objects.append(self.player)
         print("Do set up")
         self.game_state = GameState.RUNNING
 
@@ -45,6 +52,8 @@ class Game(object):
                     self.player.change_orientation(PlayerOri.TURN_RIGHT)
                 elif event.key == pygame.K_a: # TURN LEFT
                     self.player.change_orientation(PlayerOri.TURN_LEFT)
+                elif event.key == pygame.K_z: # INTERACT
+                    self.player.interact(self.map)
 
         #TODO: Handle prolog events
 
@@ -69,6 +78,27 @@ class Game(object):
                 x_pos = x_pos + 1
 
             y_pos = y_pos + 1
+
+    def request_pokemons(self):
+        poke_dict = {}
+        for i in range(1,151):
+            #REQUESTS POKEMON DETAILS FROM API
+            poke_details = 'https://pokeapi.co/api/v2/pokemon/' + str(i)
+            poke_res = requests.get(poke_details)
+            pj = poke_res.json()
+            
+            # GET POKEMON NAME AND TYPES
+            name = pj['name']
+            poke_types = [x['type']['name'] for x in pj['types']]
+            
+            # GET POKEMON SPRITE AND TURN IT INTO A FILE ON MEMORY
+            sprite_url = pj['sprites']['front_default']
+            sprite_str = urlopen(sprite_url).read()
+            sprite_file = io.BytesIO(sprite_str)
+
+            poke_dict[name] = Pokemon(name, poke_types, sprite_file)
+            self.objects.append(poke_dict[name])
+
 
 
 map_tile_image = {
