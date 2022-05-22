@@ -2,6 +2,7 @@ import random
 import pygame
 import config
 import requests
+import json
 from center import PokeCenter
 from mart import PokeMart
 from trainer import Trainer
@@ -126,24 +127,20 @@ class Game(object):
     def request_pokemons(self):
         print("Loading Pokemons...")
         poke_dict = {}
+        self.poke_data = {}
         for i in range(1,151):
-            #REQUESTS POKEMON DETAILS FROM API
-            poke_details = 'https://pokeapi.co/api/v2/pokemon/' + str(i)
-            poke_res = requests.get(poke_details)
-            pj = poke_res.json()
-            
-            # GET POKEMON NAME AND TYPES
-            name = pj['name']
-            poke_types = [x['type']['name'] for x in pj['types']]
-            
-            # DOWNLOAD POKEMON SPRITES (UNCOMMENT IF NEEDED)
-            # sprite_url = pj['sprites']['front_default']
-            # img_data = requests.get(sprite_url).content
-            # with open('sprites/pokemon/' + name + ".png", 'wb') as handler:
-            #     handler.write(img_data)
-            
-            sprite_file = 'sprites/pokemon/' + name + ".png"
 
+            ''' # REQUESTS POKEMON DETAILS FROM API AND SAVES BOTH SIMPLIFIED JSON AND SPRITES
+                # UNCOMMENT THIS IF RUNNING FOR THE FIRTS TIME
+            pj = self.get_api_json('https://pokeapi.co/api/v2/pokemon/' + str(i))
+            self.save_poke_json(pj, self.poke_data, i)
+            self.download_pokemon_sprite(pj, name)
+            '''
+
+            # READ FROM JSON FOLDER
+            name, poke_types = self.read_poke_json('jsons/names_and_types.json', i)
+            sprite_file = 'sprites/pokemon/' + name + ".png"
+        
             poke_dict[name] = Pokemon(name, poke_types, sprite_file)
             print("Pokemon: {} created!".format(name))
             #self.objects.append(poke_dict[name])
@@ -151,6 +148,32 @@ class Game(object):
         print("Pokemons Loaded!")
         
         return poke_dict
+    
+    def get_api_json(self, url):
+        poke_details = url
+        poke_res = requests.get(poke_details)
+        pj = poke_res.json()
+        return pj
+
+    def save_poke_json(self, poke_json, poke_data, index):
+        poke_data[index] = {'name': poke_json['name']}
+        poke_data[index].update({'types': [x['type']['name'] for x in poke_json['types']]})
+        with open('jsons/names_and_types.json', 'w') as f: #TODO: This could be optimized. As of now it re-writes the whole file on every loop.
+            json.dump(poke_data, f)
+        print("Json Saved: {}".format(poke_data))
+
+    def read_poke_json(self,json_file, index):
+        with open(json_file, 'r') as f:
+            poke_data = json.load(f)
+            name = poke_data[str(index)]['name']
+            types = poke_data[str(index)]['types'].copy()
+            return name, types
+    
+    def download_pokemon_sprite(self, json, pokemon):
+        sprite_url = json['sprites']['front_default']
+        img_data = requests.get(sprite_url).content
+        with open('sprites/pokemon/' + pokemon + ".png", 'wb') as handler:
+            handler.write(img_data)
 
 
 
