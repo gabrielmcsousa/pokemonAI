@@ -1,8 +1,10 @@
-from urllib.request import urlopen
+import random
 import pygame
 import config
 import requests
-import io
+from center import PokeCenter
+from mart import PokeMart
+from trainer import Trainer
 from mon import Pokemon
 from player import Player, PlayerOri
 from game_state import GameState
@@ -13,19 +15,21 @@ class Game(object):
         self.objects = []
         self.game_state = GameState.NONE
         self.map = []
-        #self.request_pokemons()
-        self.pokemons = self.request_pokemons()
+        self.poke_centers = []
+        self.poke_marts = []
+        self.poke_trainers = []             
         
-        
-
 
     def set_up(self):
+        self.load_map("01")
         self.player = Player(24, 19)
         self.objects.append(self.player)
+        self.pokemons = self.request_pokemons()
+        self.load_assets()
         print("Do set up")
         self.game_state = GameState.RUNNING
+        
 
-        self.load_map("01")
 
     def update(self):
         self.screen.fill(config.BLACK)
@@ -67,6 +71,46 @@ class Game(object):
 
             #print(self.map)
 
+    def load_assets(self):
+        print("Loading Assets...")
+        centers = 20
+        marts = 15
+        trainers = 50
+        mons = 150
+        count = 0
+
+        poke_list = list(self.pokemons.values()).copy()
+        random.shuffle(poke_list)
+
+        for i in range(len(self.map[0])):
+            for j in range(len(self.map[1])):
+                dice = random.randint(0,8)
+
+                if(dice == 0):
+                    continue
+                elif(dice == 2 and centers > 0 and count <= 0):
+                    self.poke_centers.append(PokeCenter(j, i))
+                    self.objects.append(self.poke_centers[-1])
+                    centers -= 1
+                    count = 5
+                elif(dice == 4 and marts > 0 and count <= 0):
+                    self.poke_marts.append(PokeMart(j, i))
+                    self.objects.append(self.poke_marts[-1])
+                    marts -= 1
+                    count = 5
+                elif(dice == 6 and trainers > 0 and count <= 0):
+                    self.poke_trainers.append(Trainer(j, i))
+                    self.objects.append(self.poke_trainers[-1])
+                    trainers -= 1
+                    count = 5
+                elif(dice == 8 and mons > 0):
+                    poke_name = poke_list[mons-1].name
+                    self.pokemons[poke_name].set_pos(j, i)
+                    self.objects.append(self.pokemons[poke_name])
+                    mons -= 1
+                count -= 1
+        print("Assets Loaded!")
+
     def render_map(self, screen):
         y_pos = 0
         for line in self.map:
@@ -80,6 +124,7 @@ class Game(object):
             y_pos = y_pos + 1
 
     def request_pokemons(self):
+        print("Loading Pokemons...")
         poke_dict = {}
         for i in range(1,151):
             #REQUESTS POKEMON DETAILS FROM API
@@ -91,13 +136,21 @@ class Game(object):
             name = pj['name']
             poke_types = [x['type']['name'] for x in pj['types']]
             
-            # GET POKEMON SPRITE AND TURN IT INTO A FILE ON MEMORY
-            sprite_url = pj['sprites']['front_default']
-            sprite_str = urlopen(sprite_url).read()
-            sprite_file = io.BytesIO(sprite_str)
+            # DOWNLOAD POKEMON SPRITES (UNCOMMENT IF NEEDED)
+            # sprite_url = pj['sprites']['front_default']
+            # img_data = requests.get(sprite_url).content
+            # with open('sprites/pokemon/' + name + ".png", 'wb') as handler:
+            #     handler.write(img_data)
+            
+            sprite_file = 'sprites/pokemon/' + name + ".png"
 
             poke_dict[name] = Pokemon(name, poke_types, sprite_file)
-            self.objects.append(poke_dict[name])
+            print("Pokemon: {} created!".format(name))
+            #self.objects.append(poke_dict[name])
+            
+        print("Pokemons Loaded!")
+        
+        return poke_dict
 
 
 

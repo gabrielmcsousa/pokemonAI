@@ -57,6 +57,8 @@ class Player(object):
         self.orientation += turn_rate
         self.normalizeOri()
 
+    def sense(self):
+        pass
 
     def render(self, screen):
         screen.blit(self.image, self.rect)
