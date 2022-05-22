@@ -30,8 +30,6 @@ class Game(object):
         print("Do set up")
         self.game_state = GameState.RUNNING
         
-
-
     def update(self):
         self.screen.fill(config.BLACK)
         #print(self.player.position)
@@ -52,7 +50,7 @@ class Game(object):
                 if event.key == pygame.K_ESCAPE:
                     self.game_state = GameState.ENDED
                 elif event.key == pygame.K_w: # WALK FORWARD
-                    self.player.walk_forward(self.map)
+                    self.player.walk_forward(self.map, self.index_map)
                 elif event.key == pygame.K_d: # TURN RIGHT
                     self.player.change_orientation(PlayerOri.TURN_RIGHT)
                 elif event.key == pygame.K_a: # TURN LEFT
@@ -78,38 +76,43 @@ class Game(object):
         marts = 15
         trainers = 50
         mons = 150
-        count = 0
 
+        rows, cols = 42,42
+        self.index_map = [([None]*cols) for i in range(rows)]
+        
         poke_list = list(self.pokemons.values()).copy()
         random.shuffle(poke_list)
 
-        for i in range(len(self.map[0])):
-            for j in range(len(self.map[1])):
-                dice = random.randint(0,8)
-
-                if(dice == 0):
-                    continue
-                elif(dice == 2 and centers > 0 and count <= 0):
+        while(centers + marts + trainers + mons > 0): #TODO: Improve spawning rules (e.g: No water pokemons, trainers, centers or marts on lava, no fire pokemons on water)
+            i = random.randint(0, 41)
+            j = random.randint(0, 41)
+            if(self.index_map[i][j] == None):
+                dice = random.randint(0,3)
+                
+                if(dice == 0 and centers > 0):
                     self.poke_centers.append(PokeCenter(j, i))
                     self.objects.append(self.poke_centers[-1])
                     centers -= 1
-                    count = 5
-                elif(dice == 4 and marts > 0 and count <= 0):
+                    self.index_map[i][j] = self.poke_centers[-1]
+                elif(dice == 1 and marts > 0):
                     self.poke_marts.append(PokeMart(j, i))
                     self.objects.append(self.poke_marts[-1])
                     marts -= 1
-                    count = 5
-                elif(dice == 6 and trainers > 0 and count <= 0):
+                    self.index_map[i][j] = self.poke_marts[-1]
+                elif(dice == 2 and trainers > 0):
                     self.poke_trainers.append(Trainer(j, i))
                     self.objects.append(self.poke_trainers[-1])
                     trainers -= 1
-                    count = 5
-                elif(dice == 8 and mons > 0):
+                    self.index_map[i][j] = self.poke_trainers[-1]
+                elif(dice == 3 and mons > 0):
                     poke_name = poke_list[mons-1].name
                     self.pokemons[poke_name].set_pos(j, i)
                     self.objects.append(self.pokemons[poke_name])
                     mons -= 1
-                count -= 1
+                    self.index_map[i][j] = self.pokemons[poke_name]
+
+        if(centers == marts == trainers == mons == 0):
+            print("NO MISSING ASSETS!!")
         print("Assets Loaded!")
 
     def render_map(self, screen):
@@ -127,7 +130,7 @@ class Game(object):
     def request_pokemons(self):
         print("Loading Pokemons...")
         poke_dict = {}
-        self.poke_data = {}
+        #self.poke_data = {}
         for i in range(1,151):
 
             ''' # REQUESTS POKEMON DETAILS FROM API AND SAVES BOTH SIMPLIFIED JSON AND SPRITES
@@ -142,8 +145,7 @@ class Game(object):
             sprite_file = 'sprites/pokemon/' + name + ".png"
         
             poke_dict[name] = Pokemon(name, poke_types, sprite_file)
-            print("Pokemon: {} created!".format(name))
-            #self.objects.append(poke_dict[name])
+            #print("Pokemon: {} created!".format(name))
             
         print("Pokemons Loaded!")
         
@@ -160,7 +162,7 @@ class Game(object):
         poke_data[index].update({'types': [x['type']['name'] for x in poke_json['types']]})
         with open('jsons/names_and_types.json', 'w') as f: #TODO: This could be optimized. As of now it re-writes the whole file on every loop.
             json.dump(poke_data, f)
-        print("Json Saved: {}".format(poke_data))
+        #print("Json Saved: {}".format(poke_data))
 
     def read_poke_json(self,json_file, index):
         with open(json_file, 'r') as f:
