@@ -26,6 +26,7 @@ class Player(object):
         self.obj_down = None
 
         self.pokeballs = 25
+        self.score = 0
         self.captured_pokemons = []
         self.visited_pokeMarts = []
         self.trainers_defeated = []
@@ -136,7 +137,7 @@ class Player(object):
             self.obj_right = None
     
     def interact(self, index_map, obj_list):
-        print("What's here? pos_x: {}, pos_y: {} >> ".format(self.position[0], self.position[1]) + str(type(index_map[self.position[1]][self.position[0]])))       
+        #print("What's here? pos_x: {}, pos_y: {} >> ".format(self.position[0], self.position[1]) + str(type(index_map[self.position[1]][self.position[0]])))       
         object_on_index = index_map[self.position[1]][self.position[0]]
 
         if(type(object_on_index) == Pokemon):
@@ -157,7 +158,7 @@ class Player(object):
             index_map[self.position[1]][self.position[0]] = None
             obj_list.remove(pokemon)
             self.pokeballs -= 1
-            print("{} captured! Only {} pokeballs on invertory and {} pokemons left! Go catch'em all !!".format(pokemon.name, self.pokeballs, (150 - len(self.captured_pokemons))))
+            print("{} captured! {} pokeballs on invertory and {} pokemons left! Go catch'em all !!".format(pokemon.name, self.pokeballs, (150 - len(self.captured_pokemons))))
             # Remove 5 points from score
             if(pokemon.is_electric and self.can_pass_cave == False):
                 self.can_pass_cave = True
