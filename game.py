@@ -1,3 +1,4 @@
+import math
 import random
 import pygame
 import config
@@ -18,7 +19,8 @@ class Game(object):
         self.map = []
         self.poke_centers = []
         self.poke_marts = []
-        self.poke_trainers = []             
+        self.poke_trainers = []
+        self.camera = [0, 0]             
         
 
     def set_up(self):
@@ -38,7 +40,7 @@ class Game(object):
         self.render_map(self.screen)
 
         for object in self.objects:
-            object.render(self.screen)
+            object.render(self.screen, self.camera)
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -119,12 +121,14 @@ class Game(object):
         print("Assets Loaded!")
 
     def render_map(self, screen):
+        self.determine_camera()
+
         y_pos = 0
         for line in self.map:
             x_pos = 0
             for tile in line:
                 image = map_tile_image[tile]
-                rect = pygame.Rect(x_pos * config.SCALE, y_pos * config.SCALE, config.SCALE, config.SCALE)
+                rect = pygame.Rect(x_pos * config.SCALE - (self.camera[0] * config.SCALE), y_pos * config.SCALE - (self.camera[1] * config.SCALE), config.SCALE, config.SCALE)
                 screen.blit(image, rect)
                 x_pos = x_pos + 1
 
@@ -180,7 +184,28 @@ class Game(object):
         with open('sprites/pokemon/' + pokemon + ".png", 'wb') as handler:
             handler.write(img_data)
 
+    def determine_camera(self):
+        # DETERMINE Y POSITION
+        max_y_position = len(self.map) - config.SCREEN_HEIGHT / config.SCALE
+        y_position = self.player.position[1] - math.ceil(round(config.SCREEN_HEIGHT / config.SCALE / 2))
 
+        if(y_position <= max_y_position and y_position >= 0):
+            self.camera[1] = y_position
+        elif(y_position < 0):
+            self.camera[1] = 0
+        else:
+            self.camera[1] = max_y_position
+
+        # DETERMINE X POSITION
+        max_x_position = len(self.map[0]) - config.SCREEN_WIDTH / config.SCALE
+        x_position = self.player.position[0] - math.ceil(round(config.SCREEN_WIDTH / config.SCALE / 2))
+
+        if(x_position <= max_x_position and x_position >= 0):
+            self.camera[0] = x_position
+        elif(x_position < 0):
+            self.camera[0] = 0
+        else:
+            self.camera[0] = max_x_position
 
 map_tile_image = {
     "G" : pygame.transform.scale(pygame.image.load("sprites/grass.png"), (config.SCALE, config.SCALE)),

@@ -28,7 +28,6 @@ class Player(object):
         self.pokeballs = 25
         self.captured_pokemons = []
         self.visited_pokeMarts = []
-        self.visited_pokeCenters = []
         self.trainers_defeated = []
 
     def update(self):
@@ -67,14 +66,14 @@ class Player(object):
         self.sense(new_position.copy(), index_map)
 
         self.position = new_position.copy()
-        self.rect = pygame.Rect(self.position[0] * config.SCALE, self.position[1] * config.SCALE, config.SCALE, config.SCALE)
-
+        #self.rect = pygame.Rect(self.position[0] * config.SCALE, self.position[1] * config.SCALE, config.SCALE, config.SCALE)
 
     def change_orientation(self, turn_rate):
         self.orientation += turn_rate
         self.normalizeOri()
 
-    def render(self, screen):
+    def render(self, screen, camera):
+        self.rect = pygame.Rect(self.position[0] * config.SCALE - (camera[0] * config.SCALE), self.position[1] * config.SCALE - (camera[1] * config.SCALE), config.SCALE, config.SCALE)
         screen.blit(self.image, self.rect)
     
     def normalizeOri(self):
@@ -88,6 +87,7 @@ class Player(object):
             self.orientation = PlayerOri.RIGHT
 
     def sense(self, position, index_map):
+        # FIX SENSE WHEN UP/DOWN/LEFT/RIGHT IS on -1 or 43
         
         new_position = position
         
@@ -103,25 +103,40 @@ class Player(object):
         right = new_position.copy()
         right[0] += 1
 
-        if(index_map[up[1]][up[0]] != None):
+        # CHECK UP
+        if(up[1] <= -1):
+            self.obj_up = None
+        elif(index_map[up[1]][up[0]] != None):
             self.obj_up = index_map[up[1]][up[0]]
         else:
             self.obj_up = None
-        if(index_map[down[1]][down[0]] != None):
+        
+        # CHECK DOWN
+        if(down[1] >= 42):
+            self.obj_down = None
+        elif(index_map[down[1]][down[0]] != None):
             self.obj_down = index_map[down[1]][down[0]]
         else:
             self.obj_down = None
-        if(index_map[left[1]][left[0]] != None):
+
+        # CHECK LEFT
+        if(left[0] <= -1):
+            self.obj_left = None
+        elif(index_map[left[1]][left[0]] != None):
             self.obj_left = index_map[left[1]][left[0]]
         else:
             self.obj_left = None
-        if(index_map[right[1]][right[0]] != None):
+
+        # CHECK RIGHT
+        if(right[0] >= 42):
+            self.obj_right = None
+        elif(index_map[right[1]][right[0]] != None):
             self.obj_right = index_map[right[1]][right[0]]
         else:
             self.obj_right = None
     
     def interact(self, index_map, obj_list):
-        #print("What's here? >> " + str(type(index_map[self.position[1]][self.position[0]])))       
+        print("What's here? pos_x: {}, pos_y: {} >> ".format(self.position[0], self.position[1]) + str(type(index_map[self.position[1]][self.position[0]])))       
         object_on_index = index_map[self.position[1]][self.position[0]]
 
         if(type(object_on_index) == Pokemon):
