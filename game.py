@@ -27,7 +27,7 @@ class Game(object):
         self.objects.append(self.player)
         self.pokemons = self.request_pokemons()
         self.load_assets()
-        print("Do set up")
+        print("Gotta catch'em all !!")
         self.game_state = GameState.RUNNING
         
     def update(self):
@@ -56,7 +56,9 @@ class Game(object):
                 elif event.key == pygame.K_a: # TURN LEFT
                     self.player.change_orientation(PlayerOri.TURN_LEFT)
                 elif event.key == pygame.K_z: # INTERACT
-                    self.player.interact(self.map)
+                    self.player.interact(self.index_map, self.objects)
+                    # if(len(self.player.captured_pokemons) == 150):
+                    #     self.game_state = GameState.WIN # TODO: Implement winning screen
 
         #TODO: Handle prolog events
 
@@ -79,6 +81,7 @@ class Game(object):
 
         rows, cols = 42,42
         self.index_map = [([None]*cols) for i in range(rows)]
+        self.index_map[self.player.position[1]][self.player.position[0]] = self.player
         
         poke_list = list(self.pokemons.values()).copy()
         random.shuffle(poke_list)

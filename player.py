@@ -1,5 +1,9 @@
 import pygame
 import config
+from mon import Pokemon
+from mart import PokeMart
+from center import PokeCenter
+from trainer import Trainer
 
 class Player(object):
     
@@ -22,6 +26,10 @@ class Player(object):
         self.obj_down = None
 
         self.pokeballs = 25
+        self.captured_pokemons = []
+        self.visited_pokeMarts = []
+        self.visited_pokeCenters = []
+        self.trainers_defeated = []
 
     def update(self):
         print("Player updated")
@@ -112,9 +120,75 @@ class Player(object):
         else:
             self.obj_right = None
     
-    def interact(self, map):
-        pass
+    def interact(self, index_map, obj_list):
+        #print("What's here? >> " + str(type(index_map[self.position[1]][self.position[0]])))       
+        object_on_index = index_map[self.position[1]][self.position[0]]
 
+        if(type(object_on_index) == Pokemon):
+            self.catch_pokemon(object_on_index, index_map, obj_list)
+            
+        elif(type(object_on_index) == Trainer):
+            self.begin_battle(object_on_index, index_map, obj_list)
+
+        elif(type(object_on_index) == PokeCenter):
+            self.heal_pokemons()
+
+        elif(type(object_on_index) == PokeMart):
+            self.buy_pokeballs(object_on_index, index_map, obj_list)
+
+    def catch_pokemon(self, pokemon:Pokemon, index_map, obj_list):
+        if(self.pokeballs > 0):
+            self.captured_pokemons.append(pokemon)
+            index_map[self.position[1]][self.position[0]] = None
+            obj_list.remove(pokemon)
+            self.pokeballs -= 1
+            print("{} captured! Only {} pokeballs on invertory and {} pokemons left! Go catch'em all !!".format(pokemon.name, self.pokeballs, (150 - len(self.captured_pokemons))))
+            # Remove 5 points from score
+            if(pokemon.is_electric and self.can_pass_cave == False):
+                self.can_pass_cave = True
+                print("Electric type pokemon captured!! You can now enter caves!!")
+            if(pokemon.is_fire and self.can_pass_lava == False):
+                self.can_pass_lava = True
+                print("Fire type pokemon captured!! You can now walk on lava!!")
+            if(pokemon.is_flying and self.can_pass_mountain == False):
+                self.can_pass_mountain = True
+                print("Flying type pokemon captured!! You can now fly through mountains!!")
+            if(pokemon.is_water and self.can_pass_water == False):
+                self.can_pass_water = True
+                print("Water type pokemon captured!! You can now swim on water!!")
+        else:
+            print("No pokeballs available!!")
+
+    def begin_battle(self, trainer:Trainer, index_map, obj_list):
+        if(len(self.captured_pokemons) == 0):
+            print("You don't have any pokemon to use in this battle! Go capture some before comming back!!")
+            return
+        if(Pokemon.hurt == False): # == WIN
+            self.trainers_defeated.append(trainer)
+            index_map[self.position[1]][self.position[0]] = None
+            Pokemon.hurt = True
+            obj_list.remove(trainer)
+            # Add 150 points from score
+            print("You won the battle and gained 150 points!!")
+        else:
+            # Remove 1000 points from score
+            print("You were defeated and lost 1000 points! Your pokemons are hurt, seek a PokeCenter to heal them!")
+
+    def heal_pokemons(self):
+        Pokemon.hurt = False
+        print("Your pokemons are fully healed !!")
+
+    def buy_pokeballs(self, pokemart:PokeMart, index_map, obj_list):
+        if(pokemart.pokeballs_available == True):
+            pokemart.sell_pokeballs()
+            self.pokeballs = 25
+            self.visited_pokeMarts.append(pokemart)
+            index_map[self.position[1]][self.position[0]] = None
+            obj_list.remove(pokemart)
+            print("You've replenished your invetory and the pokeballs on this PokeMart are sold-out! Next time head to another!")
+            # Remove 5 points from score
+        else:
+            print("No pokeballs available on this PokeMart!!!")
 
 class PlayerOri():
     UP = 0
