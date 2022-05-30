@@ -225,8 +225,36 @@ changeLocalization(X,Y) :-
    verifyPoint(X,Y) :- retract(mapaPoints(X, Y, _)).
 
    verifyPoint(X,Y) :- not(goMove(X,Y), assert(mapaPoints(X, Y, -1)),!).
-   
 
+   nextPoint(X,Y) :-
+   orientation(0),
+   localization(Line, Column),
+   LPO is Line + 1,
+   X =:= LPO,
+   Y =:= Column,!.
+
+   nextPoint(X,Y) :-
+   orientation(1),
+   localization(Line,Column),
+   CPO is Column + 1,
+   X=:= Line,
+   Y=:= CPO,!.
+
+   nextPoint(X,Y) :-
+   orientation(2),
+   localization(Line,Column),
+   LMO is Line - 1,
+   X=:= LMO,
+   Y=:= Column,!.
+
+   nextPoint(X,Y) :-
+   orientation(3),
+   localization(Line,Column),
+   CMO is Column - 1,
+   X=:= Line,
+   Y=:= CMO,!.
+
+   
 
    
    

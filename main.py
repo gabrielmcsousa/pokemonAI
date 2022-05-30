@@ -2,6 +2,7 @@ import pygame
 import config
 from game import Game
 from game_state import GameState
+from IPython.display import clear_output
 
 pygame.init()
 
