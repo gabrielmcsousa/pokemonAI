@@ -66,92 +66,93 @@ class BaseQuery:
             else:
                 base.insert_fact(f"mapType({i}, {j}, empty)")
 
-            def insert_entity_fact_title(self):
-                locale = self.query("localization(Line,Column)")[0]
-                self.insert_entity_fact(locale["Line"] + 1, locale["Column"])
-                self.insert_entity_fact(locale["Line"] + -1, locale["Column"])
-                self.insert_entity_fact(locale["Line"], locale["Column"] + 1)
-                self.insert_entity_fact(locale["Line"], locale["Column"] - 1)
+    def insert_entity_fact_title(self):
+        locale = self.query("localization(Line,Column)")[0]
+        self.insert_entity_fact(locale["Line"] + 1, locale["Column"])
+        self.insert_entity_fact(locale["Line"] + -1, locale["Column"])
+        self.insert_entity_fact(locale["Line"], locale["Column"] + 1)
+        self.insert_entity_fact(locale["Line"], locale["Column"] - 1)
 
-            def locale(self):
-                locale = self.query("localization(Line, Column)")[0]
-                gameMap.print((locale["Line"], locale["Column"]))
+    def locale(self):
+        locale = self.query("localization(Line, Column)")[0]
+        gameMap.print((locale["Line"], locale["Column"]))
 
-            def localeText(self):
-                self.query("localization(Line, Column)", True)
+    def localeText(self):
+        self.query("localization(Line, Column)", True)
 
-            def pokemons(self):
-                pokemons = self.query("pokemon(Pokemon, Types)")
-                pokemon = ""
-                count = 0
-                words_break = 0
-                for pokemon in pokemons:
-                    name = pokemon["Pokemon"]
-                    types = ', '.join(
-                        list(map(lambda pokeType: str(poke_type), pokemon["Types"])))
-                    count += 1
-                    words_break += len(pokemon["Types"]) + 1
+    def pokemons(self):
+        pokemons = self.query("pokemon(Pokemon, Types)")
+        pokemon = ""
+        count = 0
+        words_break = 0
+        for pokemon in pokemons:
+            name = pokemon["Pokemon"]
+            types = ', '.join(
+                list(map(lambda pokeType: str(pokeType), pokemon["Types"])))
+            count += 1
+            words_break += len(pokemon["Types"]) + 1
 
-                if(count == 150):
-                    pokemon += f"({name}, Types:[{types}])."
-                else:
-                    pokemon += f"({name}, Types:[{types}])."
-                if(words_break / 8 > 1):
-                    words_break = 0
-                    pokemon += "\n"
+        if(count == 150):
+            pokemon += f"({name}, Types:[{types}])."
+        else:
+            pokemon += f"({name}, Types:[{types}]),"
+        if(words_break / 8 > 1):
+            words_break = 0
+            pokemon += "\n"
 
-            print(pokemon)
+        print(pokemon)
 
-            def score(self):
-                self.query("pontos(Score)", True)
+    def score(self):
+        self.query("pontos(Score)", True)
 
-            def scoreCalc(self):
-                locale = base.query("localization(Line, Column)")[0]
-                line = locale["Line"]
-                column = locale["Column"]
+    def scoreCalc(self):
+        locale = base.query("localization(Line, Column)")[0]
+        line = locale["Line"]
+        column = locale["Column"]
 
-                self.query(f"mapPoints({line - 1}, {column}, Up )", True)
-                self.query(f"mapPoints({line + 1}, {column}, Back )", True)
-                self.query(f"mapPoints({line}, {column + 1}, Right)", True)
-                self.query(f"mapPoints({line}, {column - 1}),Left", True)
+        self.query(f"mapPoints({line - 1}, {column}, Up )", True)
+        self.query(f"mapPoints({line + 1}, {column}, Back )", True)
+        self.query(f"mapPoints({line}, {column + 1}, Right)", True)
+        self.query(f"mapPoints({line}, {column - 1}),Left", True)
 
-            def pokeballs(self):
-                self.query("pokeballs(Balls)", True)
+    def pokeballs(self):
+        self.query("pokeballs(Balls)", True)
 
-            def pokemonsCount(self):
-                return self.query("pokemonsRecovered(PokeCount)", True)[0]["PokeCount"]
+    def pokemonsCount(self):
+        return self.query("pokemonsRecovered(PokeCount)", True)[0]["PokeCount"]
 
-            def canWalk(self):
-                self.query("canWalk(canWalkTrue", True)
+    def canWalk(self):
+        self.query("canWalk(canWalkTrue", True)
 
-            def log(self):
-                action = list(map(lambda action: str(action),
-                              base.query("log(Action)")[0]["Actions"]))
-                for i in range(len(action)):
-                    print(f"{i + 1}a - {action[len(action) - i - 1]} ")
+    def log(self):
+        action = list(map(lambda action: str(action),
+                          base.query("log(Action)")[0]["Actions"]))
+        for i in range(len(action)):
+            print(f"{i + 1}a - {action[len(action) - i - 1]} ")
 
-            def run(self, to_print=True):
-                i = 0
-                while self.pokeCount() < 150:
-                    self.insert_entity_fact_title()
-                    self.localeText()
-                    self.score()
-                    self.scoreCalc()
-                    self.pokeballs()
-                    self.pokemonsCount()
-                    self.canWalk()
+    def run(self, to_print=True):
+        i = 0
+        while self.pokeCount() < 150:
+            self.insert_entity_fact_title()
+            self.localeText()
+            self.score()
+            self.scoreCalc()
+            self.pokeballs()
+            self.pokemonsCount()
+            self.canWalk()
 
-                    if to_print:
-                        self.locale()
-                    elif to_print == False and i % 20:
-                        clear_output(True)
-                    i = i + 1
-                    self.query("Action")
-                    self.score()
-                    print("Congrats!!!")
-                    print('GAME OVER')
+            if to_print:
+                self.locale()
+            elif to_print == False and i % 20:
+                clear_output(True)
+            i = i + 1
+            self.query("action")
+            self.score()
+            print("Congrats!!!")
+            print('GAME OVER')
 
-    gameMap = Game.map
-    base.insert_map_facts()
-    base.run(True)
-    base = BaseQuery()
+
+base = BaseQuery()
+gameMap = Game.map
+base.insert_map_facts()
+base.run(True)

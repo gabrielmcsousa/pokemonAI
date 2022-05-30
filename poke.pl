@@ -255,7 +255,10 @@ changeLocalization(X,Y) :-
    Y=:= CMO,!.
 
    
+  action :- catch,!.
+  action :- catchPokeballs,!.
+  action :-  recover(0),  recoverPokemons,!.
+  action :- recover(1), pokemon(_, _),  battleTrainer,!.
 
-   
    
    
