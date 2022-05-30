@@ -112,7 +112,7 @@ changeLocalization(X,Y) :-
    battle :- hurt(1), addPoints(-1000),!.
    battle :- hurt(0), addPoints(150), retract(hurt(1)), assert(hurt(0)),!.
 
-   BattleTrainer :-
+   battleTrainer :-
    localization(X,Y),
    mapType(X,Y, trainer),
    battle,
@@ -120,7 +120,7 @@ changeLocalization(X,Y) :-
    assert(mapType(X,Y,empty)),
    registerLog('Enfrentou um treinador!').
 
-   NeedcatchPokeballs :-
+   needCatchPokeballs :-
    pokeballs(Balls),
    pokemonsCaptured(Num),
    SumBalls is Balls + Num,
@@ -135,56 +135,99 @@ changeLocalization(X,Y) :-
    addPoints(-10),
    registerLog('Pegou 25 Pokebolas na Loja!').
 
-   WalkType(Pokemon) :-
+   walkType(Pokemon) :-
    canWalk('Water'),
    canWalk('Mountain'),
    canWalk('Volcano'),
    canWalk('Cave'),!
    
-   WalkType(Pokemon) :-
+   walkType(Pokemon) :-
    pokemon(Pokemon,Types),
    type('Water',Types),
    canWalk('Água'). 
 
-   WalkType(Pokemon) :-
+   walkType(Pokemon) :-
    pokemon(Pokemon, Types),
    type('Water',Types),
    not(canWalk('Water')),
    assert(canWalk('Water')).
 
-   WalkType(Pokemon) :-
+   walkType(Pokemon) :-
    pokemon(Pokemon,Types),
    type('Fire',Types),
    canWalk('Volcano'). 
 
-   WalkType(Pokemon) :-
+   walkType(Pokemon) :-
    pokemon(Pokemon, Types),
    type('Fire',Types),
    not(canWalk('Volcano')),
    assert(canWalk('Volcano')).
 
-   WalkType(Pokemon) :-
+   walkType(Pokemon) :-
    pokemon(Pokemon,Types),
    type('Flying',Types),
    canWalk('Mountain'). 
 
-   WalkType(Pokemon) :-
+   walkType(Pokemon) :-
    pokemon(Pokemon, Types),
    type('Flying',Types),
    not(canWalk('Mountain')),
    assert(canWalk('Mountain')).
 
    
-   WalkType(Pokemon) :-
+   walkType(Pokemon) :-
    pokemon(Pokemon,Types),
    type('Electric',Types),
    canWalk('Cave'). 
 
-   WalkType(Pokemon) :-
+   walkType(Pokemon) :-
    pokemon(Pokemon, Types),
    type('Electric',Types),
    not(canWalk('Cave')),
    assert(canWalk('Cave')).
 
+   walkType(Pokemon) :-
+   pokemon(Pokemon, Types),
+   type('Electric',Tipos),
+   not(canWalk('Cave')),
+   assert(canWalk('Cave')),!.
+
+   walkType(Pokemon) :- !.
+
+   catch :-
+   localization(X,Y),
+   pokeballs(Balls),
+   Balls>0,
+   retract(mapType(X,Y,pokemon(Pokemon,Types))),
+   assert(mapType(X,Y,empty)),
+   assert(pokemon(Pokemon,Types)),
+   walkType(Pokemon),
+   addPokeballs(-1),
+   addPokemonsRecovered(1),
+   addPoints(-5),
+   string_concat('Catched ', Pokemon,Log),
+   registerLog(Log).
+
+   unknown(Line,Column) :-
+   mapa(X,Y, _),
+   not(visited(X,Y)),
+   Line ix X,
+   Column is Y,!.
+
+   calcDistance(X1, Y1, X2, Y2, D) :-
+   DX is abs(Y1 - X2),
+   DY is abs(Y1 - Y2),
+   D is DX + DY.
+
+   goMove(X,Y) :- mapa(X,Y,'Gram'),!.
+   goMove(X,Y) :- mapa(X,Y,T), canWalk(T),!.
+
+   verifyPoint(X,Y) :- retract(mapaPoints(X, Y, _)).
+
+   verifyPoint(X,Y) :- not(goMove(X,Y), assert(mapaPoints(X, Y, -1)),!).
+   
+
+
+   
    
    
