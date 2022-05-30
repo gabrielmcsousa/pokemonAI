@@ -2,10 +2,15 @@ from pyswip import Prolog
 from functools import reduce
 from game import Game
 from IPython.display import clear_output
+from center import PokeCenter
+from mart import PokeMart
+from trainer import Trainer
+from mon import Pokemon
+from player import Player, PlayerOri
 
 
 class BaseQuery:
-    def __init__(self, base_name="poke.pl"):
+    def __init__(self, mapType, mapElements, base_name="poke.pl"):
         self.prolog = Prolog()
         self.prolog.retractall('visited(__, _)')
         self.prolog.retractall('log(_)')
@@ -16,6 +21,8 @@ class BaseQuery:
         self.prolog.retractall('mapa(_, _, _)')
         self.prolog.retractall('types(_, _)')
         self.prolog.retractall('canWalk(_)')
+        self.matrix = mapType
+        self.mapE = mapElements
 
     def insert_fact(self, fact):
         list(self.prolog.query(f"not({fact}), assert({fact})"))
@@ -34,40 +41,40 @@ class BaseQuery:
     def insert_map_facts(self):
         for i in range(42):
             for j in range(42):
-                if gameMap.matrix[i][j] == 'W':
+                if self.matrix[i][j] == 'W':
                     self.insert_fact(f"mapa({i},{j}, 'WATER')")
-                elif gameMap.matrix[i][j] == 'G':
+                elif self.matrix[i][j] == 'G':
                     self.insert_fact(f"mapa({i},{j}, 'GRAM')")
-                elif gameMap.matrix[i][j] == 'C':
+                elif self.matrix[i][j] == 'C':
                     self.insert_fact(f"mapa({i},{j}, 'CAVE')")
-                elif gameMap.matrix[i][j] == 'V':
+                elif self.matrix[i][j] == 'V':
                     self.insert_fact(f"mapa({i},{j},'VOLCANO')")
-                elif gameMap.matrix[i][j] == 'M':
-                    self.insert_fact(f"mapa({i},{j},'MOUNTAIN'")
+                elif self.matrix[i][j] == 'M':
+                    self.insert_fact(f"mapa({i},{j},'MOUNTAIN')")
 
     def insert_member_fact(self, i, j):
         if(i < 42 and j < 42 and len(self.query(f"mapType({i}, {j}, _)")) == 0):
             typeFloor = (i, j)
-            member = gameMap.dict.get(typeFloor, "EMPTY")
+            member = self.mapElements.get(typeFloor, "EMPTY")
 
-            if member == 'P':
-                base.insert_fact(f"mapType({i}, {j}, pokeCenter)")
-            elif member == 'S':
-                base.insert_fact(f"mapType({i}, {j}, store)")
-            elif member == 'C':
-                base.insert_fact(f"mapType({i}, {j}, coach)")
-            elif isinstance(member, int):
-                name = gameMap.pokemons[member]["name"]
-                types = map(
-                    lambda pokeType: f"'{pokeType}", gameMap.pokemons[member]["type"])
+            if type(member) is PokeCenter:
+                self.insert_fact(f"mapType({i}, {j}, pokeCenter)")
+            elif type(member) is PokeMart:
+                self.insert_fact(f"mapType({i}, {j}, store)")
+            elif type(member) is Trainer:
+                self.insert_fact(f"mapType({i}, {j}, coach)")
+            elif type(member) is Pokemon:
+                name = member.name
+                types = member.type
                 types = f"[{', '.join(types)}]"
-                base.insert_fact(
+                self.insert_fact(
                     f"mapType({i}, {j}, pokemon('{name}', {types}))")
             else:
-                base.insert_fact(f"mapType({i}, {j}, empty)")
+                self.insert_fact(f"mapType({i}, {j}, empty)")
 
     def insert_entity_fact_title(self):
-        locale = self.query("localization(Line,Column)")[0]
+        print("salda" + self.query("localization(Line, Column)"))
+        locale = self.query("localization(Line, Column)")[0]
         self.insert_entity_fact(locale["Line"] + 1, locale["Column"])
         self.insert_entity_fact(locale["Line"] + -1, locale["Column"])
         self.insert_entity_fact(locale["Line"], locale["Column"] + 1)
@@ -75,7 +82,7 @@ class BaseQuery:
 
     def locale(self):
         locale = self.query("localization(Line, Column)")[0]
-        gameMap.print((locale["Line"], locale["Column"]))
+   #     gameMap.print((locale["Line"], locale["Column"]))
 
     def localeText(self):
         self.query("localization(Line, Column)", True)
@@ -106,7 +113,7 @@ class BaseQuery:
         self.query("pontos(Score)", True)
 
     def scoreCalc(self):
-        locale = base.query("localization(Line, Column)")[0]
+        locale = self.query("localization(Line, Column)")[0]
         line = locale["Line"]
         column = locale["Column"]
 
@@ -118,15 +125,15 @@ class BaseQuery:
     def pokeballs(self):
         self.query("pokeballs(Balls)", True)
 
-    def pokemonsCount(self):
-        return self.query("pokemonsRecovered(PokeCount)", True)[0]["PokeCount"]
+    def pokeCount(self):
+        return self.query("  pokemonsCaptured(PokeCount)", True)[0]["PokeCount"]
 
     def canWalk(self):
         self.query("canWalk(canWalkTrue", True)
 
     def log(self):
         action = list(map(lambda action: str(action),
-                          base.query("log(Action)")[0]["Actions"]))
+                          self.query("log(Action)")[0]["Actions"]))
         for i in range(len(action)):
             print(f"{i + 1}a - {action[len(action) - i - 1]} ")
 
@@ -138,7 +145,7 @@ class BaseQuery:
             self.score()
             self.scoreCalc()
             self.pokeballs()
-            self.pokemonsCount()
+            self.pokeCount()
             self.canWalk()
 
             if to_print:
@@ -150,9 +157,3 @@ class BaseQuery:
             self.score()
             print("Congrats!!!")
             print('GAME OVER')
-
-
-base = BaseQuery()
-gameMap = Game.map
-base.insert_map_facts()
-base.run(True)

@@ -1,5 +1,5 @@
-% Átomos
-:- localization/2,
+
+:- dynamic localization/2,
    visited/2,
    pokeballs/1,
    mapa/3,
@@ -33,7 +33,7 @@ addPoints(X) :-
 addPokemonsRecovered(X) :-
    retract(pokemonsCaptured(Num)),
    R is Num + X,
-   assert(pokemonsCaptured(R))
+   assert(pokemonsCaptured(R)).
 
 addPokeballs(X) :-
     retract(pokeballs(Pokeballs)),
@@ -63,7 +63,7 @@ changeLocalization(X,Y) :-
    orientation(Position),
    Turning is(Position + 1) mod 4,
    retract(orientation(Position)),
-   assert(orientation(Position)),
+   assert(orientation(Turning)),
    addPoints(-1),
    registerLog('Virou para esquerda').
 
@@ -128,7 +128,7 @@ changeLocalization(X,Y) :-
    
    catchPokeballs :-
    localization(X,Y),
-   NeedcatchPokeballs,
+   needcatchPokeballs,
    retract(mapType(X,Y,store)),
    assert(mapType(X,Y,empty)),
    addPokeballs(25),
@@ -139,7 +139,7 @@ changeLocalization(X,Y) :-
    canWalk('Water'),
    canWalk('Mountain'),
    canWalk('Volcano'),
-   canWalk('Cave'),!
+   canWalk('Cave'),!.
    
    walkType(Pokemon) :-
    pokemon(Pokemon,Types),
@@ -211,7 +211,7 @@ changeLocalization(X,Y) :-
    unknown(Line,Column) :-
    mapa(X,Y, _),
    not(visited(X,Y)),
-   Line ix X,
+   Line is X,
    Column is Y,!.
 
    calcDistance(X1, Y1, X2, Y2, D) :-
