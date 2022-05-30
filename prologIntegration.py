@@ -10,7 +10,7 @@ from player import Player, PlayerOri
 
 
 class BaseQuery:
-    def __init__(self, mapType, mapElements, base_name="poke.pl"):
+    def __init__(self, mapType, mapE, base_name="poke.pl"):
         self.prolog = Prolog()
         self.prolog.retractall('visited(__, _)')
         self.prolog.retractall('log(_)')
@@ -22,7 +22,7 @@ class BaseQuery:
         self.prolog.retractall('types(_, _)')
         self.prolog.retractall('canWalk(_)')
         self.matrix = mapType
-        self.mapE = mapElements
+        self.mapElements = mapE
 
     def insert_fact(self, fact):
         list(self.prolog.query(f"not({fact}), assert({fact})"))
@@ -36,7 +36,7 @@ class BaseQuery:
         result = list(self.prolog.query(query))
         if print:
             self.print_list(result)
-            return result
+        return result
 
     def insert_map_facts(self):
         for i in range(42):
@@ -55,7 +55,7 @@ class BaseQuery:
     def insert_member_fact(self, i, j):
         if(i < 42 and j < 42 and len(self.query(f"mapType({i}, {j}, _)")) == 0):
             typeFloor = (i, j)
-            member = self.mapElements.get(typeFloor, "EMPTY")
+            member = self.mapElements[i][j]
 
             if type(member) is PokeCenter:
                 self.insert_fact(f"mapType({i}, {j}, pokeCenter)")
@@ -73,12 +73,12 @@ class BaseQuery:
                 self.insert_fact(f"mapType({i}, {j}, empty)")
 
     def insert_entity_fact_title(self):
-        print("salda" + self.query("localization(Line, Column)"))
+        print("salda", self.query("localization(Line, Column)"))
         locale = self.query("localization(Line, Column)")[0]
-        self.insert_entity_fact(locale["Line"] + 1, locale["Column"])
-        self.insert_entity_fact(locale["Line"] + -1, locale["Column"])
-        self.insert_entity_fact(locale["Line"], locale["Column"] + 1)
-        self.insert_entity_fact(locale["Line"], locale["Column"] - 1)
+        self.insert_member_fact(locale["Line"] + 1, locale["Column"])
+        self.insert_member_fact(locale["Line"] + -1, locale["Column"])
+        self.insert_member_fact(locale["Line"], locale["Column"] + 1)
+        self.insert_member_fact(locale["Line"], locale["Column"] - 1)
 
     def locale(self):
         locale = self.query("localization(Line, Column)")[0]
@@ -110,7 +110,7 @@ class BaseQuery:
         print(pokemon)
 
     def score(self):
-        self.query("pontos(Score)", True)
+        self.query("points(Score)", True)
 
     def scoreCalc(self):
         locale = self.query("localization(Line, Column)")[0]
@@ -139,6 +139,7 @@ class BaseQuery:
 
     def run(self, to_print=True):
         i = 0
+        print("asdasd", self.pokeCount())
         while self.pokeCount() < 150:
             self.insert_entity_fact_title()
             self.localeText()

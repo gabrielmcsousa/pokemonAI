@@ -14,14 +14,13 @@
    log/1. 
 
 orientation(0). % 0=baixo , 1 = direita, 2 = cima, 3 = esquerda
-localization(19, 24).
-visited(19, 24).
+localization(19,24).
+visited(19,24).
 pokeballs(25). %quantidade total de pokebolas
 score(0).
 pokemonsCaptured(0).
 recover(1).
 log([]).
-
 registerLog(X) :- retract(log(A)), assert(log(X | A)), !. %registro do log
 
 addPoints(X) :-
