@@ -165,5 +165,5 @@ class BaseQuery:
             i = i + 1
             self.query("action")
             self.score()
-            print("Congrats!!!")
+            print("Congrats Master Pokemon!!!")
             print('GAME OVER')

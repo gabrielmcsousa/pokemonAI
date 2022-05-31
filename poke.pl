@@ -1,4 +1,4 @@
-
+%Regras
 :- dynamic localization/2,
    visited/2,
    pokeballs/1,
@@ -13,6 +13,7 @@
    goWalk/1,
    log/1. 
 
+%Fatos
 orientation(0). % 0=baixo , 1 = direita, 2 = cima, 3 = esquerda
 localization(19,24).
 visited(19,24).
@@ -22,28 +23,32 @@ pokemonsCaptured(0).
 recover(0).
 log([]).
 
-
+%registro do log utilizando retract e assert para atualização do registro
 registerLog(X) :- retract(log(A)), assert(log(X | A)), !. %registro do log
 
+%Regra para adicionar os custos das ações
 addPoints(X) :-
   retract(points(Points)), %remove a informação points
   P is Points + X, %is força a somatória dos pontos, atualizando os pontos
   assert(points(P)). % add a informação points passando os pontos atualizados
 
-
+%Regra para atualizar a quantidade de pokemons recuperados
 addPokemonsRecovered(X) :-
    retract(pokemonsCaptured(Num)),
    R is Num + X,
    assert(pokemonsCaptured(R)).
 
+%Regra para atualizar a quantidade de pokebolas do agente
 addPokeballs(X) :-
     retract(pokeballs(Pokeballs)),
     B is Pokeballs + X,
     assert(pokeballs(B)).
 
+%Regra para atualizar os locais visitados pelo agente
 visit(X,Y) :- visited(X,Y), !.
 visit(X,Y) :- assert(visited(X,Y)),!.
 
+%Regra para atualizar a localização do agente
 changeLocalization(X,Y) :-
  retract(localization(Line, Column)),
  L is Line + X,
@@ -51,7 +56,7 @@ changeLocalization(X,Y) :-
  assert(localization(L,C)).
 
 % Movimentação do agente
-
+ %regra para virar o agente para a direita 
  turnRight :-
   orientation(Position),
   Turning is (Position + 3) mod 4,
@@ -60,6 +65,7 @@ changeLocalization(X,Y) :-
   addPoints(-1),
   registerLog('Virou para direita').
 
+  %regra para virar o agente para a esquerda
   turnLeft :-
    orientation(Position),
    Turning is(Position + 1) mod 4,
@@ -67,7 +73,8 @@ changeLocalization(X,Y) :-
    assert(orientation(Turning)),
    addPoints(-1),
    registerLog('Virou para esquerda').
-
+   
+   %regra para atualizar o
    moveForward :- orientation(0), changeLocalization(1,0), addPoints(-1), registerLog('Moveu para frente.'),!.
    moveForward :- orientation(1), changeLocalization(0,1), addPoints(-1), registerLog('Moveu para frente.'),!.
    moveForward :- orientation(2), changeLocalization(-1,0), addPoints(-1), registerLog('Moveu para frente.'),!.
@@ -101,7 +108,8 @@ changeLocalization(X,Y) :-
    turnLeft :- orientation(3),!.
 
    moverLeft :- turnLeft, moveForward.
-
+   
+   %regra para recuperar os pokemons
    recoverPokemons :-
    localization(X,Y),
    mapType(X,Y, centerPokemon),
@@ -109,10 +117,12 @@ changeLocalization(X,Y) :-
    assert(recover(1)),
    addPoints(-100),
    registerLog('Recuperou os Pokemons no Centro Pokémon'),!.
-
+   
+   %regra para mudança do estado do pokemon após a batalha
    battle :- recover(1), addPoints(-1000),!.
    battle :- recover(0), addPoints(150), retract(recover(1)), assert(recover(0)),!.
-
+   
+   %regra para remoção do treinador pokemon do prolog 
    battleTrainer :-
    localization(X,Y),
    mapType(X,Y, trainer),
@@ -120,13 +130,15 @@ changeLocalization(X,Y) :-
    retract(mapType(X,Y,trainer)),
    assert(mapType(X,Y,empty)),
    registerLog('Enfrentou um treinador!').
-
+    
+   %regra para se identificar a necessidade de se pegar mais pokebolas  
    needCatchPokeballs :-
    pokeballs(Balls),
    pokemonsCaptured(Num),
    SumBalls is Balls + Num,
    SumBalls < 150.
-   
+    
+   %regra para pegar mais 25 pokebolas
    catchPokeballs :-
    localization(X,Y),
    needCatchPokeballs,
@@ -135,13 +147,17 @@ changeLocalization(X,Y) :-
    addPokeballs(25),
    addPoints(-10),
    registerLog('Pegou 25 Pokebolas na Loja!').
+    
+   %Regras relacionadas ao tipo de terreno
 
+   %Regra relacionada aos tipos de terreno existentes que o agente pode percorrer 
    walkType(Pokemon) :-
    canWalk('Water'),
    canWalk('Mountain'),
    canWalk('Volcano'),
    canWalk('Cave'),!.
    
+   %regras para atrelar o tipo do pokemon ao tipo de terreno
    walkType(Pokemon) :-
    pokemon(Pokemon,Types),
    type('Water',Types),
@@ -192,9 +208,11 @@ changeLocalization(X,Y) :-
    type('Electric',Tipos),
    not(canWalk('Cave')),
    assert(canWalk('Cave')),!.
-
+   
+   %Regra para atualizar o tipo de terreno 
    walkType(Pokemon) :- !.
 
+   %Regra para capturar os pokemons 
    catch :-
    localization(X,Y),
    pokeballs(Balls),
@@ -209,12 +227,14 @@ changeLocalization(X,Y) :-
    string_concat('Catched ', Pokemon,Log),
    registerLog(Log).
 
+   %Regra para locais não visitados 
    unknown(Line,Column) :-
    mapa(X,Y, _),
    not(visited(X,Y)),
    Line is X,
    Column is Y,!.
    
+  %Regra action que comporta todas as principais regras que serão executadas pelo agente 
   action :- catch,!.
   action :- catchPokeballs,!.
   action :-  recover(0),  recoverPokemons,!.
