@@ -127,7 +127,7 @@ changeLocalization(X,Y) :-
    
    catchPokeballs :-
    localization(X,Y),
-   needcatchPokeballs,
+   needCatchPokeballs,
    retract(mapType(X,Y,store)),
    assert(mapType(X,Y,empty)),
    addPokeballs(25),

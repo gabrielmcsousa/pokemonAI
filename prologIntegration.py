@@ -120,7 +120,7 @@ class BaseQuery:
         self.query(f"mapPoints({line - 1}, {column}, Up )", True)
         self.query(f"mapPoints({line + 1}, {column}, Back )", True)
         self.query(f"mapPoints({line}, {column + 1}, Right)", True)
-        self.query(f"mapPoints({line}, {column - 1}),Left", True)
+        self.query(f"mapPoints({line}, {column - 1},Left)", True)
 
     def pokeballs(self):
         self.query("pokeballs(Balls)", True)
@@ -129,7 +129,7 @@ class BaseQuery:
         return self.query("  pokemonsCaptured(PokeCount)", True)[0]["PokeCount"]
 
     def canWalk(self):
-        self.query("canWalk(canWalkTrue", True)
+        self.query("canWalk(canWalkTrue)", True)
 
     def log(self):
         action = list(map(lambda action: str(action),
