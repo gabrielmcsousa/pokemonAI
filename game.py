@@ -35,7 +35,7 @@ class Game(object):
     def update(self):
         self.screen.fill(config.BLACK)
         # print(self.player.position)
-        self.handle_events()
+        # self.handle_events()
 
         self.render_map(self.screen)
 

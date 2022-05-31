@@ -21,6 +21,8 @@ score(0).
 pokemonsCaptured(0).
 recover(1).
 log([]).
+
+
 registerLog(X) :- retract(log(A)), assert(log(X | A)), !. %registro do log
 
 addPoints(X) :-

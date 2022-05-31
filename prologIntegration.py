@@ -7,6 +7,8 @@ from mart import PokeMart
 from trainer import Trainer
 from mon import Pokemon
 from player import Player, PlayerOri
+import pygame
+import config
 
 
 class BaseQuery:
@@ -137,10 +139,15 @@ class BaseQuery:
         for i in range(len(action)):
             print(f"{i + 1}a - {action[len(action) - i - 1]} ")
 
-    def run(self, to_print=True):
+    def run(self,  game, to_print=True):
         i = 0
-        print("asdasd", self.pokeCount())
-        while self.pokeCount() < 150:
+        # while self.pokeCount() < 150:
+        pygame.init()
+
+        pygame.display.set_caption("PrologMon")
+
+        clock = pygame.time.Clock()
+        for j in range(10000):
             self.insert_entity_fact_title()
             self.localeText()
             self.score()
@@ -148,7 +155,9 @@ class BaseQuery:
             self.pokeballs()
             self.pokeCount()
             self.canWalk()
-
+            clock.tick(50)
+            game.update()
+            pygame.display.flip()
             if to_print:
                 self.locale()
             elif to_print == False and i % 20:
