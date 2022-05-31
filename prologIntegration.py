@@ -135,7 +135,7 @@ class BaseQuery:
 
     def log(self):
         action = list(map(lambda action: str(action),
-                          self.query("log(Action)")[0]["Actions"]))
+                          self.query("log(action)")[0]["action"]))
         for i in range(len(action)):
             print(f"{i + 1}a - {action[len(action) - i - 1]} ")
 

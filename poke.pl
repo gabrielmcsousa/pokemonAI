@@ -19,7 +19,7 @@ visited(19,24).
 pokeballs(25). %quantidade total de pokebolas
 score(0).
 pokemonsCaptured(0).
-recover(1).
+recover(0).
 log([]).
 
 
@@ -110,8 +110,8 @@ changeLocalization(X,Y) :-
    addPoints(-100),
    registerLog('Recuperou os Pokemons no Centro Pokémon'),!.
 
-   battle :- hurt(1), addPoints(-1000),!.
-   battle :- hurt(0), addPoints(150), retract(hurt(1)), assert(hurt(0)),!.
+   battle :- recover(1), addPoints(-1000),!.
+   battle :- recover(0), addPoints(150), retract(recover(1)), assert(recover(0)),!.
 
    battleTrainer :-
    localization(X,Y),
@@ -214,47 +214,6 @@ changeLocalization(X,Y) :-
    not(visited(X,Y)),
    Line is X,
    Column is Y,!.
-
-   calcDistance(X1, Y1, X2, Y2, D) :-
-   DX is abs(Y1 - X2),
-   DY is abs(Y1 - Y2),
-   D is DX + DY.
-
-   goMove(X,Y) :- mapa(X,Y,'Gram'),!.
-   goMove(X,Y) :- mapa(X,Y,T), canWalk(T),!.
-
-   verifyPoint(X,Y) :- retract(mapaPoints(X, Y, _)).
-
-   verifyPoint(X,Y) :- not(goMove(X,Y), assert(mapaPoints(X, Y, -1)),!).
-
-   nextPoint(X,Y) :-
-   orientation(0),
-   localization(Line, Column),
-   LPO is Line + 1,
-   X =:= LPO,
-   Y =:= Column,!.
-
-   nextPoint(X,Y) :-
-   orientation(1),
-   localization(Line,Column),
-   CPO is Column + 1,
-   X=:= Line,
-   Y=:= CPO,!.
-
-   nextPoint(X,Y) :-
-   orientation(2),
-   localization(Line,Column),
-   LMO is Line - 1,
-   X=:= LMO,
-   Y=:= Column,!.
-
-   nextPoint(X,Y) :-
-   orientation(3),
-   localization(Line,Column),
-   CMO is Column - 1,
-   X=:= Line,
-   Y=:= CMO,!.
-
    
   action :- catch,!.
   action :- catchPokeballs,!.
