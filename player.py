@@ -24,6 +24,7 @@ class Player(object):
         self.obj_right = None
         self.obj_up = None
         self.obj_down = None
+        self.obj_my_pos = None
 
         self.pokeballs = 25
         self.score = 0
@@ -67,8 +68,7 @@ class Player(object):
         self.sense(new_position.copy(), index_map)
 
         self.position = new_position.copy()
-        #self.rect = pygame.Rect(self.position[0] * config.SCALE, self.position[1] * config.SCALE, config.SCALE, config.SCALE)
-
+        
     def change_orientation(self, turn_rate):
         self.orientation += turn_rate
         self.normalizeOri()
@@ -88,9 +88,9 @@ class Player(object):
             self.orientation = PlayerOri.RIGHT
 
     def sense(self, position, index_map):
-        # FIX SENSE WHEN UP/DOWN/LEFT/RIGHT IS on -1 or 43
-        
+                
         new_position = position
+        self.obj_my_pos = index_map[new_position[1]][new_position[0]].copy()
         
         up = new_position.copy()
         up[1] += -1
@@ -108,7 +108,8 @@ class Player(object):
         if(up[1] <= -1):
             self.obj_up = None
         elif(index_map[up[1]][up[0]] != None):
-            self.obj_up = index_map[up[1]][up[0]]
+            sense_up = index_map[up[1]][up[0]].copy()
+            self.obj_up = [e for e in sense_up if type(e) not in (Pokemon, PokeMart, PokeCenter, Trainer)]
         else:
             self.obj_up = None
         
@@ -116,7 +117,8 @@ class Player(object):
         if(down[1] >= 42):
             self.obj_down = None
         elif(index_map[down[1]][down[0]] != None):
-            self.obj_down = index_map[down[1]][down[0]]
+            sense_down = index_map[down[1]][down[0]].copy()
+            self.obj_down = [e for e in sense_down if type(e) not in (Pokemon, PokeMart, PokeCenter, Trainer)]
         else:
             self.obj_down = None
 
@@ -124,7 +126,8 @@ class Player(object):
         if(left[0] <= -1):
             self.obj_left = None
         elif(index_map[left[1]][left[0]] != None):
-            self.obj_left = index_map[left[1]][left[0]]
+            sense_left = index_map[left[1]][left[0]].copy()
+            self.obj_left = [e for e in sense_left if type(e) not in (Pokemon, PokeMart, PokeCenter, Trainer)]
         else:
             self.obj_left = None
 
@@ -132,13 +135,18 @@ class Player(object):
         if(right[0] >= 42):
             self.obj_right = None
         elif(index_map[right[1]][right[0]] != None):
-            self.obj_right = index_map[right[1]][right[0]]
+            sense_right = index_map[right[1]][right[0]].copy()
+            self.obj_right = [e for e in sense_right if type(e) not in (Pokemon, PokeMart, PokeCenter, Trainer)]
         else:
-            self.obj_right = None
+            self.obj_right = None       
     
     def interact(self, index_map, obj_list):
-        #print("What's here? pos_x: {}, pos_y: {} >> ".format(self.position[0], self.position[1]) + str(type(index_map[self.position[1]][self.position[0]])))       
-        object_on_index = index_map[self.position[1]][self.position[0]]
+
+        object_on_index = None
+
+        for e in index_map[self.position[1]][self.position[0]]:
+            if type(e) in (Pokemon, PokeMart, PokeCenter, Trainer):
+                object_on_index = e
 
         if(type(object_on_index) == Pokemon):
             self.catch_pokemon(object_on_index, index_map, obj_list)
@@ -155,7 +163,15 @@ class Player(object):
     def catch_pokemon(self, pokemon:Pokemon, index_map, obj_list):
         if(self.pokeballs > 0):
             self.captured_pokemons.append(pokemon)
-            index_map[self.position[1]][self.position[0]] = None
+            index_map[self.position[1]][self.position[0]].remove(pokemon)
+            if(self.position[1]-1 >= 0):
+                index_map[self.position[1]-1][self.position[0]].remove('dexWarning')
+            if(self.position[1]+1 <= 41):
+                index_map[self.position[1]+1][self.position[0]].remove('dexWarning')
+            if(self.position[0]-1 >= 0):
+                index_map[self.position[1]][self.position[0]-1].remove('dexWarning')
+            if(self.position[0]+1 <= 41):
+                index_map[self.position[1]][self.position[0]+1].remove('dexWarning')
             obj_list.remove(pokemon)
             self.pokeballs -= 1
             print("{} captured! {} pokeballs on invertory and {} pokemons left! Go catch'em all !!".format(pokemon.name, self.pokeballs, (150 - len(self.captured_pokemons))))
@@ -181,7 +197,15 @@ class Player(object):
             return
         if(Pokemon.hurt == False): # == WIN
             self.trainers_defeated.append(trainer)
-            index_map[self.position[1]][self.position[0]] = None
+            index_map[self.position[1]][self.position[0]].remove(trainer)
+            if(self.position[1]-1 >= 0):
+                index_map[self.position[1]-1][self.position[0]].remove('battleShout')
+            if(self.position[1]+1 <= 41):
+                index_map[self.position[1]+1][self.position[0]].remove('battleShout')
+            if(self.position[0]-1 >= 0):    
+                index_map[self.position[1]][self.position[0]-1].remove('battleShout')
+            if(self.position[0]+1 <= 41):    
+                index_map[self.position[1]][self.position[0]+1].remove('battleShout')
             Pokemon.hurt = True
             obj_list.remove(trainer)
             # Add 150 points from score
@@ -199,7 +223,15 @@ class Player(object):
             pokemart.sell_pokeballs()
             self.pokeballs = 25
             self.visited_pokeMarts.append(pokemart)
-            index_map[self.position[1]][self.position[0]] = None
+            index_map[self.position[1]][self.position[0]].remove(pokemart)
+            if(self.position[1]-1 >= 0):    
+                index_map[self.position[1]-1][self.position[0]].remove('vendingShout')
+            if(self.position[1]+1 <= 41):    
+                index_map[self.position[1]+1][self.position[0]].remove('vendingShout')
+            if(self.position[0]-1 >= 0):    
+                index_map[self.position[1]][self.position[0]-1].remove('vendingShout')
+            if(self.position[0]+1 <= 41):
+                index_map[self.position[1]][self.position[0]+1].remove('vendingShout')
             obj_list.remove(pokemart)
             print("You've replenished your invetory and the pokeballs on this PokeMart are sold-out! Next time head to another!")
             # Remove 5 points from score

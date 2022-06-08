@@ -32,10 +32,11 @@ class Game(object):
         print("Gotta catch'em all !!")
         self.game_state = GameState.RUNNING
 
-    def update(self):
+    def update(self, human_player = False):
         self.screen.fill(config.BLACK)
-        # print(self.player.position)
-        # self.handle_events()
+        
+        if(human_player == True):
+            self.handle_events()
 
         self.render_map(self.screen)
 
@@ -62,8 +63,6 @@ class Game(object):
                     # if(len(self.player.captured_pokemons) == 150):
                     #     self.game_state = GameState.WIN # TODO: Implement winning screen
 
-        # TODO: Handle prolog events
-
     def load_map(self, file_name):
         with open('maps/' + file_name + ".txt") as map_file:
             for line in map_file:
@@ -71,8 +70,6 @@ class Game(object):
                 for i in range(0, len(line) - 1, 2):
                     tiles.append(line[i])
                 self.map.append(tiles)
-
-            # print(self.map)
 
     def load_assets(self):
         print("Loading Assets...")
@@ -82,9 +79,13 @@ class Game(object):
         mons = 150
 
         rows, cols = 42, 42
-        self.index_map = [([None]*cols) for i in range(rows)]
-        self.index_map[self.player.position[1]
-                       ][self.player.position[0]] = self.player
+        self.index_map = []
+        for i in range(0, rows):
+            self.index_map.append([])
+            for j in range(0, cols):
+                self.index_map[i].append([])
+        
+#        self.index_map[self.player.position[1]][self.player.position[0]].append(self.player)
 
         poke_list = list(self.pokemons.values()).copy()
         random.shuffle(poke_list)
@@ -93,30 +94,62 @@ class Game(object):
         while(centers + marts + trainers + mons > 0):
             i = random.randint(0, 41)
             j = random.randint(0, 41)
-            if(self.index_map[i][j] == None):
+            if(self.index_map[i][j] == []):
                 dice = random.randint(0, 3)
 
                 if(dice == 0 and centers > 0):
                     self.poke_centers.append(PokeCenter(j, i))
                     self.objects.append(self.poke_centers[-1])
                     centers -= 1
-                    self.index_map[i][j] = self.poke_centers[-1]
+                    self.index_map[i][j].append(self.poke_centers[-1])
+                    if(i+1 <= 41):
+                        self.index_map[i+1][j].append('smell')
+                    if(i-1 >= 0):
+                        self.index_map[i-1][j].append('smell')
+                    if(j+1 <= 41):
+                        self.index_map[i][j+1].append('smell')
+                    if(j-1 >= 0):
+                        self.index_map[i][j-1].append('smell')
                 elif(dice == 1 and marts > 0):
                     self.poke_marts.append(PokeMart(j, i))
                     self.objects.append(self.poke_marts[-1])
                     marts -= 1
-                    self.index_map[i][j] = self.poke_marts[-1]
+                    self.index_map[i][j].append(self.poke_marts[-1])
+                    if(i+1 <= 41):
+                        self.index_map[i+1][j].append('vendingShout')
+                    if(i-1 >= 0):
+                        self.index_map[i-1][j].append('vendingShout')
+                    if(j+1 <= 41):
+                        self.index_map[i][j+1].append('vendingShout')
+                    if(j-1 >= 0):
+                        self.index_map[i][j-1].append('vendingShout')
                 elif(dice == 2 and trainers > 0):
                     self.poke_trainers.append(Trainer(j, i))
                     self.objects.append(self.poke_trainers[-1])
                     trainers -= 1
-                    self.index_map[i][j] = self.poke_trainers[-1]
+                    self.index_map[i][j].append(self.poke_trainers[-1])
+                    if(i+1 <= 41):
+                        self.index_map[i+1][j].append('battleShout')
+                    if(i-1 >= 0):
+                        self.index_map[i-1][j].append('battleShout')
+                    if(j+1 <= 41):
+                        self.index_map[i][j+1].append('battleShout')
+                    if(j-1 >= 0):
+                        self.index_map[i][j-1].append('battleShout')
                 elif(dice == 3 and mons > 0):
                     poke_name = poke_list[mons-1].name
                     self.pokemons[poke_name].set_pos(j, i)
                     self.objects.append(self.pokemons[poke_name])
                     mons -= 1
-                    self.index_map[i][j] = self.pokemons[poke_name]
+                    self.index_map[i][j].append(self.pokemons[poke_name])
+                    if(i+1 <= 41):
+                        self.index_map[i+1][j].append('dexWarning')
+                    if(i-1 >= 0):
+                        self.index_map[i-1][j].append('dexWarning')
+                    if(j+1 <= 41):
+                        self.index_map[i][j+1].append('dexWarning')
+                    if(j-1 >= 0):
+                        self.index_map[i][j-1].append('dexWarning')
 
         if(centers == marts == trainers == mons == 0):
             print("NO MISSING ASSETS!!")
