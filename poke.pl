@@ -10,7 +10,7 @@
    recover/1,
    pokemonsCaptured/1,
    mapPoints/3,
-   goWalk/1,
+   canWalk/1,
    log/1. 
 
 %Fatos
@@ -112,7 +112,7 @@ changeLocalization(X,Y) :-
    %regra para recuperar os pokemons
    recoverPokemons :-
    localization(X,Y),
-   mapType(X,Y, centerPokemon),
+   mapType(X,Y, pokeCenter),
    retract(recover(Recover)),
    assert(recover(1)),
    addPoints(-100),
@@ -226,19 +226,158 @@ changeLocalization(X,Y) :-
    addPoints(-5),
    string_concat('Catched ', Pokemon,Log),
    registerLog(Log).
-
+  
+   calculateDistance(X1, Y1, X2, Y2, Distance) :-
+   DX is abs(X1 - X2),
+   DY is abs(Y1 - Y2),
+   Distance is DX + DY.
+   
    %Regra para locais não visitados 
    unknown(Line,Column) :-
    mapa(X,Y, _),
    not(visited(X,Y)),
    Line is X,
    Column is Y,!.
-   
+
+   canMove(X,Y) :- mapa(X, Y, 'Grama'),!.
+   canMove(X,Y) :- mapa(X,Y,T), canWalk(T),!.
+    
+   verifyBlockBlock(X, Y) :- retract(mapPoints(X,Y, _)).
+
+   verifyBlock(X, Y) :- not(canMove(X,Y), assert(mapPoints(X, Y, -1))),!.
+
+  
+   frontBlock(X, Y) :-
+   orientation(0),
+   localization(Line, Column),
+   LPO is Line + 1,
+   X =:= LPO,
+   Y =:= Column,!.
+
+   frontBlock(X, Y) :-
+   orientation(1),
+   localization(Line, Column),
+   CPO is Column + 1,
+   X =:= Line,
+   Y =:= CPO,!.
+
+   frontBlock(X, Y) :-
+   orientation(2),
+   localization(Line, Column),
+   LMO is Line - 1,
+   X =:= Column,!.
+
+   frontBlock(X, Y) :-
+   orientation(3),
+   localization(Line, Column),
+   CMO is Column - 1,
+   X =:= Line,
+   Y =:= CMO,!.
+
+   sideBlock(X, Y) :-
+   (orientation(0); orientation(2)),
+   localization(Line, Column),
+   CMO is Column + 1,
+   CMO is Column - 1,
+   X =:= Line,
+   (Y =:= CPO; Y=:= CMO),!.
+
+   sideBlock(X, Y) :-
+   (orientation(1), orientation(3)),
+   localization(Line, Column),
+   LPO is Line + 1,
+   LMO is Line - 1,
+   (X =:= LPO; X =:= LMO),
+   Y =:= Column,!.
+
+   verifyBlock(X, Y) :-
+   canMove(X, Y),
+   mapType(X, Y, pokemon(Pokemon, _)),
+   pokeballs(Balls),
+   Balls > 0,
+   assert(mapPoints(X, Y, 200)),!.
+
+   verifyBlock(X, Y) :-
+   canMove(X, Y),
+   mapType(X, Y, store),
+   needCatchPokeballs,
+   assert(mapPoints(X, Y, 150)),!.
+
+   verifyBlock(X, Y) :-
+   canMove(X, Y),
+   mapType(X, Y, pokeCenter),
+   recover(1),
+   assert(mapPoints(X, Y, 140)),!.
+
+   verifyBlock(X, Y) :-
+   canMove(X, Y),
+   mapType(X, Y, trainer),
+   pokemon(_, _),
+   recover(0),
+   assert(mapPoints(X, Y, 130)),!.
+
+   verifyBlock(X, Y) :-
+   canMove(X, Y),
+   not(unknown(X, Y)),
+   assert(mapPoints(X, Y, 120)),!.
+
+   verifyBlock(X, Y) :-
+   canMove(X, Y),
+   canWalk('Water'),
+   canWalk('Volcano'),
+   canWalk('Mountain'),
+   canWalk('Cave'),
+   mapType(W, Z, pokemon(_, _)),
+   calculateDistance(X, Y, W, Z, Distance),
+   Points is 110 - Distance,
+   assert(mapPoints(X, Y, Points)),!.
+
+   verifyBlock(X, Y) :-
+   canMove(X, Y),
+   frontBlock(X, Y),
+   random(60, 90, Rand),
+   assert(mapPoints(X, Y, 90)),!.
+
+   verifyBlock(X, Y) :-
+   canMove(X, Y),
+   sideBlock(X, Y),
+   random(50, 90, Rand),
+   assert(mapPoints(X, Y, Rand)),!.
+
+   verifyBlock(X, Y) :-
+   canMove(X, Y),
+   random(40, 90, Rand),
+   assert(mapPoints(X, Y, Rand)),!.
+
+
+   moviment(A, B, C, D) :- A >= B, A >= C, A >= D, moveDown,!.
+   moviment(A, B, C, D) :- B >= A, B >= C, B >= D, moveUp,!.
+   moviment(A, B, C, D) :- C >= A, C >= B, C >= D, moveRight,!.
+   moviment(A, B, C, D) :- D >= A, D >= B, D >= C, moverLeft,!.
+
+   move :-
+   localization(Line, Column),
+   LPO is Line + 1,
+   LMO is Line - 1,
+   CPO is Column + 1,
+   CMO is Column - 1,
+   verifyBlock(LPO, Column),
+   verifyBlock(LMO, Column),
+   verifyBlock(Line, CPO),
+   verifyBlock(Line, CMO),
+   mapPoints(LPO, Column, P1),
+   mapPoints(LMO, Column, P2),
+   mapPoints(Line, CPO, P3),
+   mapPoints(Line, CMO, P4),
+   moviment(P1, P2, P3, P4).
+
+
   %Regra action que comporta todas as principais regras que serão executadas pelo agente 
   action :- catch,!.
   action :- catchPokeballs,!.
   action :-  recover(0),  recoverPokemons,!.
   action :- recover(1), pokemon(_, _),  battleTrainer,!.
+  action :- moviment,!.
 
    
    
