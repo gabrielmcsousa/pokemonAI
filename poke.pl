@@ -18,13 +18,13 @@ orientation(0). % 0=baixo , 1 = direita, 2 = cima, 3 = esquerda
 localization(19,24).
 visited(19,24).
 pokeballs(25). %quantidade total de pokebolas
-score(0).
+points(0).
 pokemonsCaptured(0).
-recover(0).
+recover(1).
 log([]).
 
 %registro do log utilizando retract e assert para atualização do registro
-registerLog(X) :- retract(log(A)), assert(log(X | A)), !. %registro do log
+registerLog(X) :- retract(log(A)), assert(log([X | A])), !. %registro do log
 
 %Regra para adicionar os custos das ações
 addPoints(X) :-
@@ -53,7 +53,8 @@ changeLocalization(X,Y) :-
  retract(localization(Line, Column)),
  L is Line + X,
  C is Column + Y,
- assert(localization(L,C)).
+ assert(localization(L,C)),
+ visit(L, C).
 
 % Movimentação do agente
  %regra para virar o agente para a direita 
@@ -114,7 +115,7 @@ changeLocalization(X,Y) :-
    localization(X,Y),
    mapType(X,Y, pokeCenter),
    retract(recover(Recover)),
-   assert(recover(1)),
+   assert(recover(0)),
    addPoints(-100),
    registerLog('Recuperou os Pokemons no Centro Pokémon'),!.
    
@@ -161,7 +162,7 @@ changeLocalization(X,Y) :-
    walkType(Pokemon) :-
    pokemon(Pokemon,Types),
    type('Water',Types),
-   canWalk('Água'). 
+   canWalk('Water'). 
 
    walkType(Pokemon) :-
    pokemon(Pokemon, Types),
@@ -201,12 +202,6 @@ changeLocalization(X,Y) :-
    pokemon(Pokemon, Types),
    type('Electric',Types),
    not(canWalk('Cave')),
-   assert(canWalk('Cave')).
-
-   walkType(Pokemon) :-
-   pokemon(Pokemon, Types),
-   type('Electric',Tipos),
-   not(canWalk('Cave')),
    assert(canWalk('Cave')),!.
    
    %Regra para atualizar o tipo de terreno 
@@ -215,6 +210,9 @@ changeLocalization(X,Y) :-
    %Regra para capturar os pokemons 
    catch :-
    localization(X,Y),
+   string_concat('Pokemon in ',X,Log),
+   string_concat(Log,X,Logg),
+   registerLog(Logg),
    pokeballs(Balls),
    Balls>0,
    retract(mapType(X,Y,pokemon(Pokemon,Types))),
@@ -233,20 +231,19 @@ changeLocalization(X,Y) :-
    Distance is DX + DY.
    
    %Regra para locais não visitados 
-   unknown(Line,Column) :-
+   unknown(L,C) :-
    mapa(X,Y, _),
    not(visited(X,Y)),
-   Line is X,
-   Column is Y,!.
+   L is X,
+   C is Y,!.
 
-   canMove(X,Y) :- mapa(X, Y, 'Grama'),!.
-   canMove(X,Y) :- mapa(X,Y,T), canWalk(T),!.
+   canMove(X, Y) :- mapa(X, Y, 'Gram'),!.
+   canMove(X, Y) :- mapa(X, Y, T), canWalk(T),!.
     
-   verifyBlockBlock(X, Y) :- retract(mapPoints(X,Y, _)).
+   verifyBlock(X, Y) :- retract(mapPoints(X,Y, _)).
 
-   verifyBlock(X, Y) :- not(canMove(X,Y), assert(mapPoints(X, Y, -1))),!.
+   verifyBlock(X, Y) :- not(canMove(X,Y)), assert(mapPoints(X, Y, -1)),!.
 
-  
    frontBlock(X, Y) :-
    orientation(0),
    localization(Line, Column),
@@ -318,7 +315,7 @@ changeLocalization(X,Y) :-
 
    verifyBlock(X, Y) :-
    canMove(X, Y),
-   not(unknown(X, Y)),
+   not(visited(X, Y)),
    assert(mapPoints(X, Y, 120)),!.
 
    verifyBlock(X, Y) :-
@@ -328,6 +325,17 @@ changeLocalization(X,Y) :-
    canWalk('Mountain'),
    canWalk('Cave'),
    mapType(W, Z, pokemon(_, _)),
+   calculateDistance(X, Y, W, Z, Distance),
+   Points is 110 - Distance,
+   assert(mapPoints(X, Y, Points)),!.
+
+   verifyBlock(X, Y) :-
+   canMove(X, Y),
+   canWalk('Water'),
+   canWalk('Volcano'),
+   canWalk('Mountain'),
+   canWalk('Cave'),
+   unknown(W, Z),
    calculateDistance(X, Y, W, Z, Distance),
    Points is 110 - Distance,
    assert(mapPoints(X, Y, Points)),!.
@@ -375,9 +383,9 @@ changeLocalization(X,Y) :-
   %Regra action que comporta todas as principais regras que serão executadas pelo agente 
   action :- catch,!.
   action :- catchPokeballs,!.
-  action :-  recover(0),  recoverPokemons,!.
-  action :- recover(1), pokemon(_, _),  battleTrainer,!.
-  action :- moviment,!.
+  action :-  recover(1),  recoverPokemons,!.
+  action :- recover(0), pokemon(_, _),  battleTrainer,!.
+  action :- move,!.
 
    
    

@@ -9,6 +9,7 @@ from mon import Pokemon
 from player import Player, PlayerOri
 import pygame
 import config
+from time import sleep
 
 
 class BaseQuery:
@@ -18,7 +19,7 @@ class BaseQuery:
         self.prolog.retractall('log(_)')
         self.prolog.consult(base_name)
         self.prolog.retractall('pokemon(_, _)')
-        self.prolog.retractall('mapTypes(_,_,_)')
+        self.prolog.retractall('mapType(_,_,_)')
         self.prolog.retractall('mapPoints(_, _, _)')
         self.prolog.retractall('mapa(_, _, _)')
         self.prolog.retractall('types(_, _)')
@@ -32,7 +33,7 @@ class BaseQuery:
     def print_list(self, list):
         for item in list:
             for key in item:
-                print(key, "=", item[key])
+                print(key, ":=", item[key])
 
     def query(self, query, print=False):
         result = list(self.prolog.query(query))
@@ -44,19 +45,18 @@ class BaseQuery:
         for i in range(42):
             for j in range(42):
                 if self.matrix[i][j] == 'W':
-                    self.insert_fact(f"mapa({i},{j}, 'WATER')")
+                    self.insert_fact(f"mapa({i},{j}, 'Water')")
                 elif self.matrix[i][j] == 'G':
-                    self.insert_fact(f"mapa({i},{j}, 'GRAM')")
+                    self.insert_fact(f"mapa({i},{j}, 'Gram')")
                 elif self.matrix[i][j] == 'C':
-                    self.insert_fact(f"mapa({i},{j}, 'CAVE')")
+                    self.insert_fact(f"mapa({i},{j}, 'Cave')")
                 elif self.matrix[i][j] == 'V':
-                    self.insert_fact(f"mapa({i},{j},'VOLCANO')")
+                    self.insert_fact(f"mapa({i},{j},'Volcano')")
                 elif self.matrix[i][j] == 'M':
-                    self.insert_fact(f"mapa({i},{j},'MOUNTAIN')")
+                    self.insert_fact(f"mapa({i},{j},'Mountain')")
 
     def insert_member_fact(self, i, j):
         if(i < 42 and j < 42 and len(self.query(f"mapType({i}, {j}, _)")) == 0):
-            typeFloor = (i, j)
             member = self.mapElements[i][j]
 
             if type(member) is PokeCenter:
@@ -64,7 +64,7 @@ class BaseQuery:
             elif type(member) is PokeMart:
                 self.insert_fact(f"mapType({i}, {j}, store)")
             elif type(member) is Trainer:
-                self.insert_fact(f"mapType({i}, {j}, coach)")
+                self.insert_fact(f"mapType({i}, {j}, trainer)")
             elif type(member) is Pokemon:
                 name = member.name
                 types = member.type
@@ -84,6 +84,7 @@ class BaseQuery:
 
     def locale(self):
         locale = self.query("localization(Line, Column)")[0]
+        return locale
    #     gameMap.print((locale["Line"], locale["Column"]))
 
     def localeText(self):
@@ -128,10 +129,10 @@ class BaseQuery:
         self.query("pokeballs(Balls)", True)
 
     def pokeCount(self):
-        return self.query("  pokemonsCaptured(PokeCount)", True)[0]["PokeCount"]
+        return self.query("pokemonsCaptured(PokeCount)", True)[0]["PokeCount"]
 
     def canWalk(self):
-        self.query("canWalk(canWalkTrue)", True)
+        self.query("canWalk(CanWalkTrue)", True)
 
     def log(self):
         action = list(map(lambda action: str(action),
@@ -147,7 +148,8 @@ class BaseQuery:
         pygame.display.set_caption("PrologMon")
 
         clock = pygame.time.Clock()
-        for j in range(10000):
+        for j in range(100):
+            sleep(2)
             self.insert_entity_fact_title()
             self.localeText()
             self.score()
@@ -156,14 +158,15 @@ class BaseQuery:
             self.pokeCount()
             self.canWalk()
             clock.tick(50)
-            game.update()
-            pygame.display.flip()
             if to_print:
-                self.locale()
+                newPlayerLocale = self.locale()
+                game.objects[0].position = newPlayerLocale["Line"], newPlayerLocale["Column"]
             elif to_print == False and i % 20:
                 clear_output(True)
-            i = i + 1
-            self.query("action")
+            game.update()
+            pygame.display.flip()
+             i = i + 1
+             self.query("action")
             self.score()
             print("Congrats Master Pokemon!!!")
             print('GAME OVER')
